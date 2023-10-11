@@ -81,7 +81,3 @@ void mpu6050_read_gyro();
 void mpu6050_read_accel();
 
 #endif /* MPU6050_H_ */
-
-
-
-
