@@ -20,6 +20,7 @@
 #include "main.h"
 #include <stdio.h>
 #include "mpu6050.h"
+#include "pid.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -51,6 +52,8 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
+//extern struct gyro_data;
+//extern struct accel_data;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
@@ -104,16 +107,30 @@ int main(void)
   MX_TIM3_Init();
 
   /* USER CODE BEGIN 2 */
-  // Start the MPU6050
+  // Initialize MPU6050
   mpu6050_init();
 
-  // Turn on Channel 3 motor at 100% duty cycle
-  HAL_GPIO_WritePin(GPIOA,PA9_D8_OUT_Pin, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(PC7_D9_OUT_GPIO_Port,PC7_D9_OUT_Pin, GPIO_PIN_RESET);
+  PIDController controller;
+
+  /* PID gain constants for tuning */
+  controller.kp = 1.1f;
+  controller.ki = 0.02f;
+  controller.kd = 0.1;
+  controller.sampling_time = 1000;
+
+  /* Upright Position */
+  float set_pitch = 0.0f;
+  float set_roll = 0.0f;
+
+  PIDController_Init(&controller);
+
+//  // Turn on Channel 3 motor at 100% duty cycle
+//  HAL_GPIO_WritePin(GPIOA,PA9_D8_OUT_Pin, GPIO_PIN_SET);
+//  HAL_GPIO_WritePin(PC7_D9_OUT_GPIO_Port,PC7_D9_OUT_Pin, GPIO_PIN_RESET);
 
   // Start Timer and its channels for the motor driver
-  HAL_TIM_Base_Start(&htim3);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+//  HAL_TIM_Base_Start(&htim3);
+//  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -121,20 +138,23 @@ int main(void)
   while (1)
   {
 	/* USER CODE BEGIN 3 */
-	__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3, 700);
+//	__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3, 700);
+//
+//	// Switch motor direction when there is a button pressed
+//	if(HAL_GPIO_ReadPin(GPIOB,PB5_D4_IN_Pin) == GPIO_PIN_RESET)
+//	{
+//		HAL_GPIO_TogglePin(GPIOA, PA9_D8_OUT_Pin);
+//		HAL_GPIO_TogglePin(PC7_D9_OUT_GPIO_Port, PC7_D9_OUT_Pin);
+//	}
+	gyro_data gyro;
+	accel_data accel;
+	mpu6050_read_accel(&gyro);
+	mpu6050_read_gyro(&accel);
+	float gyro_pitch_reading = gyro.x_val;
 
-	// Switch motor direction when there is a button pressed
-	if(HAL_GPIO_ReadPin(GPIOB,PB5_D4_IN_Pin) == GPIO_PIN_RESET)
-	{
-		HAL_GPIO_TogglePin(GPIOA, PA9_D8_OUT_Pin);
-		HAL_GPIO_TogglePin(PC7_D9_OUT_GPIO_Port, PC7_D9_OUT_Pin);
-	}
+	PIDController_Update(&controller, set_pitch, gyro_pitch_reading);
+	printf("%f\n\r", controller.motor_output);
 
-	printf(" ------------------------ \n\r");
-	mpu6050_read_accel();
-	mpu6050_read_gyro();
-	printf(" ------------------------ \n\r");
-	HAL_Delay(500);
   }
   /* USER CODE END 3 */
   /* USER CODE END WHILE */
