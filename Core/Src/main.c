@@ -109,6 +109,9 @@ int main(void)
   /* USER CODE BEGIN 2 */
   // Initialize MPU6050
   mpu6050_init();
+  gyro_data gyro;
+  accel_data accel;
+  int toggle = 0;
 
   PIDController controller;
 
@@ -125,12 +128,13 @@ int main(void)
   PIDController_Init(&controller);
 
 //  // Turn on Channel 3 motor at 100% duty cycle
-//  HAL_GPIO_WritePin(GPIOA,PA9_D8_OUT_Pin, GPIO_PIN_SET);
-//  HAL_GPIO_WritePin(PC7_D9_OUT_GPIO_Port,PC7_D9_OUT_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, PA9_D8_OUT_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(PC7_D9_OUT_GPIO_Port, PC7_D9_OUT_Pin, GPIO_PIN_RESET);
 
   // Start Timer and its channels for the motor driver
-//  HAL_TIM_Base_Start(&htim3);
-//  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+  HAL_TIM_Base_Start(&htim3);
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -146,14 +150,44 @@ int main(void)
 //		HAL_GPIO_TogglePin(GPIOA, PA9_D8_OUT_Pin);
 //		HAL_GPIO_TogglePin(PC7_D9_OUT_GPIO_Port, PC7_D9_OUT_Pin);
 //	}
-	gyro_data gyro;
-	accel_data accel;
-	mpu6050_read_accel(&gyro);
-	mpu6050_read_gyro(&accel);
-	float gyro_pitch_reading = gyro.x_val;
+	mpu6050_read_accel(&accel);
+	mpu6050_read_gyro(&gyro);
 
-	PIDController_Update(&controller, set_pitch, gyro_pitch_reading);
-	printf("%f\n\r", controller.motor_output);
+	PIDController_Update(&controller, set_pitch, gyro.x_val);
+
+	if(gyro.x_val <= 0 && toggle == 0)
+	{
+		HAL_GPIO_TogglePin(GPIOA, PA9_D8_OUT_Pin);
+		HAL_Delay(500);
+		HAL_GPIO_TogglePin(PC7_D9_OUT_GPIO_Port, PC7_D9_OUT_Pin);
+		toggle = 1;
+	}
+	else if (gyro.x_val > 0 && toggle == 1)
+	{
+		HAL_GPIO_TogglePin(GPIOA, PA9_D8_OUT_Pin);
+		HAL_Delay(500);
+		HAL_GPIO_TogglePin(PC7_D9_OUT_GPIO_Port, PC7_D9_OUT_Pin);
+		toggle = 0;
+	}
+
+	__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3, controller.motor_output*500);
+
+	// Gyro X value data and PID motor controller output
+	printf("GYRO PITCH: %.2f MOTOR OUTPUT: %.2f TOGGLE: %d\n\r ", gyro.x_val, controller.motor_output, toggle);
+	HAL_Delay(1000);
+
+
+	// Robot moving in the other direction (switch direction)
+//	if(gyro.x_val <= 0)
+//	{
+//		HAL_GPIO_TogglePin(GPIOA, PA9_D8_OUT_Pin);
+//		HAL_GPIO_TogglePin(PC7_D9_OUT_GPIO_Port, PC7_D9_OUT_Pin);
+//		__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3, controller.motor_output*100);
+//	}
+//	else
+//	{
+//		__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3, controller.motor_output*100);
+//	}
 
   }
   /* USER CODE END 3 */

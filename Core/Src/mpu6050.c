@@ -46,24 +46,22 @@ void mpu6050_read_gyro(gyro_data * gyro)
     HAL_I2C_Mem_Read(&hi2c1, SENSOR_ADDR, GYRO_XOUT_LOW, 1, &gyro->x_data[1], 1, 100);
 
     gyro->x_val_raw = ((int16_t)gyro->x_data[0] << 8) | gyro->x_data[1];
-    gyro->x_val = (((double)gyro->x_val_raw)/GYRO_SENSITIVITY)*10.0;
+    gyro->x_val = (((double)gyro->x_val_raw)/GYRO_SENSITIVITY);
 
     // y-axis
     HAL_I2C_Mem_Read(&hi2c1, SENSOR_ADDR, GYRO_YOUT_HIGH, 1, &gyro->y_data[0], 1, 100);
     HAL_I2C_Mem_Read(&hi2c1, SENSOR_ADDR, GYRO_YOUT_LOW, 1, &gyro->y_data[1], 1, 100);
 
     gyro->y_val_raw = ((int16_t)gyro->y_data[0] << 8) | gyro->y_data[1];
-    gyro->y_val = (((double)gyro->y_val_raw)/GYRO_SENSITIVITY)*10.0;
+    gyro->y_val = (((double)gyro->y_val_raw)/GYRO_SENSITIVITY);
 
     // z-axis
     HAL_I2C_Mem_Read(&hi2c1, SENSOR_ADDR, GYRO_ZOUT_HIGH, 1, &gyro->z_data[0], 1, 100);
     HAL_I2C_Mem_Read(&hi2c1, SENSOR_ADDR, GYRO_ZOUT_LOW, 1, &gyro->z_data[1], 1, 100);
 
     gyro->z_val_raw = ((int16_t)gyro->z_data[0] << 8) | gyro->z_data[1];
-    gyro->z_val = (((double)gyro->z_val_raw)/GYRO_SENSITIVITY)*10.0;
+    gyro->z_val = (((double)gyro->z_val_raw)/GYRO_SENSITIVITY);
 
-//    printf(" x-axis gyro: %d , y-axis gyro: %d, z-axis gyro: %d\n\r",
-//    		gyro.x_val, gyro.y_val, gyro.z_val);
 }
 
 void mpu6050_read_accel(accel_data * accel)
@@ -76,23 +74,21 @@ void mpu6050_read_accel(accel_data * accel)
     HAL_I2C_Mem_Read(&hi2c1, SENSOR_ADDR, ACCEL_XOUT_LOW, 1, &accel->x_data[1], 1, 100);
 
     accel->x_val_raw = ((int16_t)accel->x_data[0] << 8) | accel->x_data[1];
-    accel->x_val = (((double)accel->x_val_raw)*1000.0)/ACCEL_SENSITIVITY;
+    accel->x_val = (((double)accel->x_val_raw)*10.0)/ACCEL_SENSITIVITY;
 
     // y-axis
     HAL_I2C_Mem_Read(&hi2c1, SENSOR_ADDR, ACCEL_YOUT_HIGH, 1, &accel->y_data[0], 1, 100);
     HAL_I2C_Mem_Read(&hi2c1, SENSOR_ADDR, ACCEL_YOUT_LOW, 1, &accel->y_data[1], 1, 100);
 
     accel->y_val_raw = ((int16_t)accel->y_data[0] << 8) | accel->y_data[1];
-    accel->y_val = (((double)accel->y_val_raw)*1000.0)/ACCEL_SENSITIVITY;
+    accel->y_val = (((double)accel->y_val_raw)*10.0)/ACCEL_SENSITIVITY;
 
     // z-axis
     HAL_I2C_Mem_Read(&hi2c1, SENSOR_ADDR, ACCEL_ZOUT_HIGH, 1, &accel->z_data[0], 1, 100);
     HAL_I2C_Mem_Read(&hi2c1, SENSOR_ADDR, ACCEL_ZOUT_LOW, 1, &accel->z_data[1], 1, 100);
 
     accel->z_val_raw = ((int16_t)accel->z_data[0] << 8) | accel->z_data[1];
-    accel->z_val = (((double)accel->z_val_raw)*1000.0)/ACCEL_SENSITIVITY;
+    accel->z_val = (((double)accel->z_val_raw)*10.0)/ACCEL_SENSITIVITY;
 
-//    printf(" x-axis acceleration: %d , y-axis acceleration: %d, z-axis acceleration: %d\n\r",
-//    		accel.x_val, accel.y_val, accel.z_val);
 }
 
