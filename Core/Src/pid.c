@@ -14,8 +14,6 @@ void PIDController_Init(PIDController * controller)
 
 	controller->prev_error = 0.0f;
 
-//	controller->left_motor_output = 0.0f;
-//	controller->right_motor_output = 0.0f;
 	controller->motor_output = 0.0f;
 }
 

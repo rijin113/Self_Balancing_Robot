@@ -116,12 +116,11 @@ int main(void)
   int toggle = 0;
   /* Upright Position */
   float set_pitch = 0.0f;
-  float set_roll = 0.0f;
 
   PIDController controller;
 
   /* PID gain constants for tuning */
-  controller.kp = 6.2f;
+  controller.kp = 23.0f;
   controller.ki = 3.3f;
   controller.kd = 0.1;
   controller.sampling_time = 500;
