@@ -90,5 +90,8 @@ void mpu6050_read_accel(accel_data * accel)
     accel->z_val_raw = ((int16_t)accel->z_data[0] << 8) | accel->z_data[1];
     accel->z_val = (((double)accel->z_val_raw)*10.0)/ACCEL_SENSITIVITY;
 
+    accel->roll_angle = atan(accel->y_val/sqrt((accel->x_val*accel->x_val)+(accel->z_val*accel->z_val))) * 1/(3.142/180);
+    accel->pitch_angle = (-atan(accel->x_val/sqrt((accel->y_val*accel->y_val)+(accel->z_val*accel->z_val))) * 1/(3.142/180))+5.0;
+
 }
 

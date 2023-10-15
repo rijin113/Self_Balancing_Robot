@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include "mpu6050.h"
 #include "pid.h"
+#include "math.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -111,23 +112,22 @@ int main(void)
   mpu6050_init();
   gyro_data gyro;
   accel_data accel;
+
   int toggle = 0;
-
-  PIDController controller;
-
-  /* PID gain constants for tuning */
-  controller.kp = 1.1f;
-  controller.ki = 0.02f;
-  controller.kd = 0.1;
-  controller.sampling_time = 1000;
-
   /* Upright Position */
   float set_pitch = 0.0f;
   float set_roll = 0.0f;
 
+  PIDController controller;
+
+  /* PID gain constants for tuning */
+  controller.kp = 6.2f;
+  controller.ki = 3.3f;
+  controller.kd = 0.1;
+  controller.sampling_time = 500;
   PIDController_Init(&controller);
 
-//  // Turn on Channel 3 motor at 100% duty cycle
+  // Turn on Channel 3 motor at 100% duty cycle
   HAL_GPIO_WritePin(GPIOA, PA9_D8_OUT_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(PC7_D9_OUT_GPIO_Port, PC7_D9_OUT_Pin, GPIO_PIN_RESET);
 
@@ -142,52 +142,29 @@ int main(void)
   while (1)
   {
 	/* USER CODE BEGIN 3 */
-//	__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3, 700);
-//
-//	// Switch motor direction when there is a button pressed
-//	if(HAL_GPIO_ReadPin(GPIOB,PB5_D4_IN_Pin) == GPIO_PIN_RESET)
-//	{
-//		HAL_GPIO_TogglePin(GPIOA, PA9_D8_OUT_Pin);
-//		HAL_GPIO_TogglePin(PC7_D9_OUT_GPIO_Port, PC7_D9_OUT_Pin);
-//	}
 	mpu6050_read_accel(&accel);
 	mpu6050_read_gyro(&gyro);
 
-	PIDController_Update(&controller, set_pitch, gyro.x_val);
+	PIDController_Update(&controller, set_pitch, accel.pitch_angle);
 
-	if(gyro.x_val <= 0 && toggle == 0)
+	if((accel.pitch_angle) < 0 && toggle == 0)
 	{
 		HAL_GPIO_TogglePin(GPIOA, PA9_D8_OUT_Pin);
-		HAL_Delay(500);
 		HAL_GPIO_TogglePin(PC7_D9_OUT_GPIO_Port, PC7_D9_OUT_Pin);
 		toggle = 1;
 	}
-	else if (gyro.x_val > 0 && toggle == 1)
+	else if ((accel.pitch_angle) > 0 && toggle == 1)
 	{
 		HAL_GPIO_TogglePin(GPIOA, PA9_D8_OUT_Pin);
-		HAL_Delay(500);
 		HAL_GPIO_TogglePin(PC7_D9_OUT_GPIO_Port, PC7_D9_OUT_Pin);
 		toggle = 0;
 	}
 
-	__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3, controller.motor_output*500);
+	__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3, fabs(controller.motor_output*100.0f));
 
-	// Gyro X value data and PID motor controller output
-	printf("GYRO PITCH: %.2f MOTOR OUTPUT: %.2f TOGGLE: %d\n\r ", gyro.x_val, controller.motor_output, toggle);
-	HAL_Delay(1000);
-
-
-	// Robot moving in the other direction (switch direction)
-//	if(gyro.x_val <= 0)
-//	{
-//		HAL_GPIO_TogglePin(GPIOA, PA9_D8_OUT_Pin);
-//		HAL_GPIO_TogglePin(PC7_D9_OUT_GPIO_Port, PC7_D9_OUT_Pin);
-//		__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3, controller.motor_output*100);
-//	}
-//	else
-//	{
-//		__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3, controller.motor_output*100);
-//	}
+	// PID motor controller output
+	printf("PITCH ANGLE: %.2f MOTOR OUTPUT: %.2f TOGGLE: %d\n\r ", accel.pitch_angle, controller.motor_output, toggle);
+	HAL_Delay(500);
 
   }
   /* USER CODE END 3 */
@@ -304,7 +281,7 @@ static void MX_TIM3_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 500;
+  sConfigOC.Pulse = 900;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)

@@ -61,15 +61,18 @@
 struct data_init {
     uint8_t x_data[2];
     int16_t x_val_raw;
-    double x_val;
+    float x_val;
 
     uint8_t y_data[2];
     int16_t y_val_raw;
-    double y_val;
+    float y_val;
 
     uint8_t z_data[2];
     int16_t z_val_raw;
-    double z_val;
+    float z_val;
+
+    float pitch_angle;
+    float roll_angle;
 };
 
 typedef struct data_init gyro_data;

@@ -25,10 +25,10 @@ void PIDController_Update(PIDController *controller, float setpoint, float imu_r
 
 	float proportional = (controller->kp) * error;
 
-	controller->integral += error * ((controller->sampling_time)/1000.0f);
+	controller->integral += error;
 	float integral = controller->ki * controller->integral;
 
-	controller->derivative = (controller->prev_error - error)/((controller->sampling_time)/1000.0f);
+	controller->derivative = (error - controller->prev_error)/((controller->sampling_time)/1000.0f);
 	float derivative = controller->kd * controller->derivative;
 
 	controller->motor_output = proportional + integral + derivative;
