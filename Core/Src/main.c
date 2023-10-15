@@ -22,6 +22,7 @@
 #include "mpu6050.h"
 #include "pid.h"
 #include "math.h"
+#include "state_machine.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -141,6 +142,7 @@ int main(void)
   // Start Timer and its channels for the motor driver
   HAL_TIM_Base_Start(&htim3);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
+  Robot_State state = ROBOT_IDLE;
 
   /* USER CODE END 2 */
   /* Infinite loop */
@@ -153,26 +155,124 @@ int main(void)
 
 	PIDController_Update(&controller, set_pitch, accel.pitch_angle);
 
-	if((accel.pitch_angle) < 0 && toggle == 0)
-	{
-		HAL_GPIO_TogglePin(GPIOA, PA9_D8_OUT_Pin);
-		HAL_GPIO_TogglePin(PC7_D9_OUT_GPIO_Port, PC7_D9_OUT_Pin);
-		toggle = 1;
-	}
-	else if ((accel.pitch_angle) > 0 && toggle == 1)
-	{
-		HAL_GPIO_TogglePin(GPIOA, PA9_D8_OUT_Pin);
-		HAL_GPIO_TogglePin(PC7_D9_OUT_GPIO_Port, PC7_D9_OUT_Pin);
-		toggle = 0;
-	}
+//	if((accel.pitch_angle) < 0 && toggle == 0)
+//	{
+//		HAL_GPIO_TogglePin(GPIOA, PA9_D8_OUT_Pin);
+//		HAL_GPIO_TogglePin(PC7_D9_OUT_GPIO_Port, PC7_D9_OUT_Pin);
+//		toggle = 1;
+//	}
+//	else if ((accel.pitch_angle) > 0 && toggle == 1)
+//	{
+//		HAL_GPIO_TogglePin(GPIOA, PA9_D8_OUT_Pin);
+//		HAL_GPIO_TogglePin(PC7_D9_OUT_GPIO_Port, PC7_D9_OUT_Pin);
+//		toggle = 0;
+//	}
+//
+//	__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3, fabs(controller.motor_output*100.0f));
+//	__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_4, fabs(controller.motor_output*100.0f));
+//
+//	// PID motor controller output
+//	printf("PITCH ANGLE: %.2f MOTOR OUTPUT: %.2f TOGGLE: %d\n\r ", accel.pitch_angle, controller.motor_output, toggle);
+//	HAL_Delay(500);
 
+	/* State Machine Implementation */
+	switch(state)
+	{
+	  case ROBOT_IDLE:
+//		state = robot_idle_state(&controller);
+//		__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3, fabs(controller->motor_output*100.0f));
+//		__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_4, fabs(controller->motor_output*100.0f));
+		state = ROBOT_START;
+		break;
+	  case ROBOT_START:
+//		state = robot_start_state(&accel);
+		if((accel.pitch_angle) < 0)
+		{
+			state = ROBOT_BACKWARD;
+		}
+		else if ((accel.pitch_angle) > 0)
+		{
+			state = ROBOT_FORWARD;
+		}
+		else
+		{
+			state = ROBOT_START;
+		}
+		break;
+	  case ROBOT_FORWARD:
+//		state = robot_forward_state(&accel);
+		// Drive backwards to counter the change
+		if(accel.pitch_angle > 0 && toggle == 1)
+		{
+			// Left Motor
+			HAL_GPIO_TogglePin(GPIOA, PA9_D8_OUT_Pin);
+			HAL_GPIO_TogglePin(PC7_D9_OUT_GPIO_Port, PC7_D9_OUT_Pin);
+
+			// Right Motor
+			HAL_GPIO_TogglePin(GPIOA, PA8_D7_OUT_Pin);
+			HAL_GPIO_TogglePin(PB10_D6_OUT_GPIO_Port, PB10_D6_OUT_Pin);
+			toggle = 0;
+		}
+
+		if(accel.pitch_angle < 0)
+		{
+			state = ROBOT_BACKWARD;
+		}
+		else
+		{
+			state = ROBOT_FORWARD;
+		}
+
+	  //	if (1)
+	  //	{
+	  //		return ROBOT_STOP;
+	  //	}
+		break;
+	  case ROBOT_BACKWARD:
+//		state = robot_backward_state(&accel);
+		// Drive forward to counter the change
+		if(accel.pitch_angle < 0 && toggle == 0)
+		{
+			// Left Motor
+			HAL_GPIO_TogglePin(GPIOA, PA9_D8_OUT_Pin);
+			HAL_GPIO_TogglePin(PC7_D9_OUT_GPIO_Port, PC7_D9_OUT_Pin);
+
+			// Right Motor
+			HAL_GPIO_TogglePin(GPIOA, PA8_D7_OUT_Pin);
+			HAL_GPIO_TogglePin(PB10_D6_OUT_GPIO_Port, PB10_D6_OUT_Pin);
+			toggle = 1;
+		}
+
+		if(accel.pitch_angle > 0)
+		{
+			state = ROBOT_FORWARD;
+		}
+		else
+		{
+			state = ROBOT_BACKWARD;
+		}
+
+	  //	if (1)
+	  //	{
+	  //		return ROBOT_STOP;
+	  //	}
+		break;
+	  case ROBOT_STOP:
+//		state = robot_stopped_state();
+		__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3, 0);
+		__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_4, 0);
+		state = ROBOT_IDLE;
+		break;
+	  case ROBOT_BALANCED:
+		break;
+	  default:
+		break;
+	}
 	__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3, fabs(controller.motor_output*100.0f));
 	__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_4, fabs(controller.motor_output*100.0f));
 
-	// PID motor controller output
 	printf("PITCH ANGLE: %.2f MOTOR OUTPUT: %.2f TOGGLE: %d\n\r ", accel.pitch_angle, controller.motor_output, toggle);
 	HAL_Delay(500);
-
   }
   /* USER CODE END 3 */
   /* USER CODE END WHILE */
