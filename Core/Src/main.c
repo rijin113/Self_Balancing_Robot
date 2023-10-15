@@ -131,12 +131,19 @@ int main(void)
   HAL_GPIO_WritePin(GPIOA, PA9_D8_OUT_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(PC7_D9_OUT_GPIO_Port, PC7_D9_OUT_Pin, GPIO_PIN_RESET);
 
+  // Turn on Channel 4 motor at 100% duty cycle
+  HAL_GPIO_WritePin(GPIOA, PA8_D7_OUT_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(PB10_D6_OUT_GPIO_Port, PB10_D6_OUT_Pin, GPIO_PIN_RESET);
+
   // Start Timer and its channels for the motor driver
   HAL_TIM_Base_Start(&htim3);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
 
-  /* USER CODE END 2 */
+  // Start Timer and its channels for the motor driver
+  HAL_TIM_Base_Start(&htim3);
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
 
+  /* USER CODE END 2 */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -161,6 +168,7 @@ int main(void)
 	}
 
 	__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3, fabs(controller.motor_output*100.0f));
+	__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_4, fabs(controller.motor_output*100.0f));
 
 	// PID motor controller output
 	printf("PITCH ANGLE: %.2f MOTOR OUTPUT: %.2f TOGGLE: %d\n\r ", accel.pitch_angle, controller.motor_output, toggle);
