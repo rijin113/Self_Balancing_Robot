@@ -155,26 +155,6 @@ int main(void)
 
 	PIDController_Update(&controller, set_pitch, accel.pitch_angle);
 
-//	if((accel.pitch_angle) < 0 && toggle == 0)
-//	{
-//		HAL_GPIO_TogglePin(GPIOA, PA9_D8_OUT_Pin);
-//		HAL_GPIO_TogglePin(PC7_D9_OUT_GPIO_Port, PC7_D9_OUT_Pin);
-//		toggle = 1;
-//	}
-//	else if ((accel.pitch_angle) > 0 && toggle == 1)
-//	{
-//		HAL_GPIO_TogglePin(GPIOA, PA9_D8_OUT_Pin);
-//		HAL_GPIO_TogglePin(PC7_D9_OUT_GPIO_Port, PC7_D9_OUT_Pin);
-//		toggle = 0;
-//	}
-//
-//	__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3, fabs(controller.motor_output*100.0f));
-//	__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_4, fabs(controller.motor_output*100.0f));
-//
-//	// PID motor controller output
-//	printf("PITCH ANGLE: %.2f MOTOR OUTPUT: %.2f TOGGLE: %d\n\r ", accel.pitch_angle, controller.motor_output, toggle);
-//	HAL_Delay(500);
-
 	/* State Machine Implementation */
 	switch(state)
 	{
