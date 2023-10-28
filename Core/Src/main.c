@@ -139,7 +139,7 @@ int main(void)
   HAL_TIM_Base_Start(&htim3);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
 
-  // Start Timer and its channels for the motor driver
+//  // Start Timer and its channels for the motor driver
   HAL_TIM_Base_Start(&htim3);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
   Robot_State state = ROBOT_IDLE;
@@ -159,9 +159,6 @@ int main(void)
 	switch(state)
 	{
 	  case ROBOT_IDLE:
-//		state = robot_idle_state(&controller);
-//		__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3, fabs(controller->motor_output*100.0f));
-//		__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_4, fabs(controller->motor_output*100.0f));
 		state = ROBOT_START;
 		break;
 	  case ROBOT_START:
@@ -202,14 +199,8 @@ int main(void)
 		{
 			state = ROBOT_FORWARD;
 		}
-
-	  //	if (1)
-	  //	{
-	  //		return ROBOT_STOP;
-	  //	}
 		break;
 	  case ROBOT_BACKWARD:
-//		state = robot_backward_state(&accel);
 		// Drive forward to counter the change
 		if(accel.pitch_angle < 0 && toggle == 0)
 		{
@@ -231,14 +222,8 @@ int main(void)
 		{
 			state = ROBOT_BACKWARD;
 		}
-
-	  //	if (1)
-	  //	{
-	  //		return ROBOT_STOP;
-	  //	}
 		break;
 	  case ROBOT_STOP:
-//		state = robot_stopped_state();
 		__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3, 0);
 		__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_4, 0);
 		state = ROBOT_IDLE;
