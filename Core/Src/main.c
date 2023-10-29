@@ -121,8 +121,8 @@ int main(void)
   PIDController controller;
 
   /* PID gain constants for tuning */
-  controller.kp = 23.0f;
-  controller.ki = 3.3f;
+  controller.kp = 300.0f;
+  controller.ki = 50.0f;
   controller.kd = 0.1;
   controller.sampling_time = 500;
   PIDController_Init(&controller);
@@ -139,7 +139,7 @@ int main(void)
   HAL_TIM_Base_Start(&htim3);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
 
-//  // Start Timer and its channels for the motor driver
+  // Start Timer and its channels for the motor driver
   HAL_TIM_Base_Start(&htim3);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
   Robot_State state = ROBOT_IDLE;
@@ -162,7 +162,6 @@ int main(void)
 		state = ROBOT_START;
 		break;
 	  case ROBOT_START:
-//		state = robot_start_state(&accel);
 		if((accel.pitch_angle) < 0)
 		{
 			state = ROBOT_BACKWARD;
@@ -179,7 +178,7 @@ int main(void)
 	  case ROBOT_FORWARD:
 //		state = robot_forward_state(&accel);
 		// Drive backwards to counter the change
-		if(accel.pitch_angle > 0 && toggle == 1)
+		if(accel.pitch_angle < 0 && toggle == 1)
 		{
 			// Left Motor
 			HAL_GPIO_TogglePin(GPIOA, PA9_D8_OUT_Pin);
@@ -191,7 +190,7 @@ int main(void)
 			toggle = 0;
 		}
 
-		if(accel.pitch_angle < 0)
+		if(accel.pitch_angle > 0)
 		{
 			state = ROBOT_BACKWARD;
 		}
@@ -202,7 +201,7 @@ int main(void)
 		break;
 	  case ROBOT_BACKWARD:
 		// Drive forward to counter the change
-		if(accel.pitch_angle < 0 && toggle == 0)
+		if(accel.pitch_angle > 0 && toggle == 0)
 		{
 			// Left Motor
 			HAL_GPIO_TogglePin(GPIOA, PA9_D8_OUT_Pin);
@@ -214,7 +213,7 @@ int main(void)
 			toggle = 1;
 		}
 
-		if(accel.pitch_angle > 0)
+		if(accel.pitch_angle < 0)
 		{
 			state = ROBOT_FORWARD;
 		}
@@ -233,11 +232,10 @@ int main(void)
 	  default:
 		break;
 	}
-	__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3, fabs(controller.motor_output*100.0f));
-	__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_4, fabs(controller.motor_output*100.0f));
-
+	__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3, fabs(controller.motor_output*10.0f));
+	__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_4, fabs(controller.motor_output*10.0f));
 	printf("PITCH ANGLE: %.2f MOTOR OUTPUT: %.2f TOGGLE: %d\n\r ", accel.pitch_angle, controller.motor_output, toggle);
-	HAL_Delay(500);
+//	HAL_Delay(500);
   }
   /* USER CODE END 3 */
   /* USER CODE END WHILE */

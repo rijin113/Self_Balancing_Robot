@@ -21,8 +21,6 @@ typedef struct
 
 	float prev_error;
 
-//	float left_motor_output; // Left Motor (Will change) // PWM Duty Cycle
-//	float right_motor_output; // Right Motor (will change) // PWM Duty Cycle
 	float motor_output;
 
 } PIDController;
