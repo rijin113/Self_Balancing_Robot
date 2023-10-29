@@ -38,8 +38,6 @@ void mpu6050_init()
 
 void mpu6050_read_gyro(gyro_data * gyro)
 {
-//	gyro_data gyro;
-
     /* Gyroscope Measurements */
     // x-axis
     HAL_I2C_Mem_Read(&hi2c1, SENSOR_ADDR, GYRO_XOUT_HIGH, 1, &gyro->x_data[0], 1, 100);
@@ -66,8 +64,6 @@ void mpu6050_read_gyro(gyro_data * gyro)
 
 void mpu6050_read_accel(accel_data * accel)
 {
-//	accel_data accel;
-
     /* Accelerometer Measurements */
 	// x-axis
     HAL_I2C_Mem_Read(&hi2c1, SENSOR_ADDR, ACCEL_XOUT_HIGH, 1, &accel->x_data[0], 1, 100);
@@ -92,6 +88,5 @@ void mpu6050_read_accel(accel_data * accel)
 
     accel->roll_angle = atan(accel->y_val/sqrt((accel->x_val*accel->x_val)+(accel->z_val*accel->z_val))) * 1/(3.142/180);
     accel->pitch_angle = (-atan(accel->x_val/sqrt((accel->y_val*accel->y_val)+(accel->z_val*accel->z_val))) * 1/(3.142/180))+5.0;
-
 }
 

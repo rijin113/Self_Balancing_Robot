@@ -82,160 +82,100 @@ int __io_putchar(int ch)
   */
 int main(void)
 {
-  /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
-
-  /* MCU Configuration--------------------------------------------------------*/
-
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
-  /* USER CODE BEGIN Init */
-
-  /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
 
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
-
-  /* Initialize all configured peripherals */
+  /* Initialize all configured peripherals (I2C, Timer, GPIO, etc) */
   MX_GPIO_Init();
   MX_I2C1_Init();
   MX_USART2_UART_Init();
   MX_TIM3_Init();
 
-  /* USER CODE BEGIN 2 */
-  // Initialize MPU6050
+  /* Initialize IMU (Gyroscope and Accelerometer) */
   mpu6050_init();
   gyro_data gyro;
   accel_data accel;
 
+  /* Set up a variable to keep track of motor direction switches */
   int toggle = 0;
+
   /* Upright Position */
-  float set_pitch = 0.0f;
+  const float set_pitch = 0.0f;
 
+  /* Set up PID Controller and gain constants for tuning. */
   PIDController controller;
-
-  /* PID gain constants for tuning */
-  controller.kp = 300.0f;
-  controller.ki = 50.0f;
-  controller.kd = 0.1;
+  controller.kp = 50.0f;
+  controller.ki = 40.0f;
+  controller.kd = 0.4f;
   controller.sampling_time = 500;
   PIDController_Init(&controller);
 
-  // Turn on Channel 3 motor at 100% duty cycle
+  /* Turn on Channel 3 motor at 100% duty cycle */
   HAL_GPIO_WritePin(GPIOA, PA9_D8_OUT_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(PC7_D9_OUT_GPIO_Port, PC7_D9_OUT_Pin, GPIO_PIN_RESET);
 
-  // Turn on Channel 4 motor at 100% duty cycle
+  /* Turn on Channel 4 motor at 100% duty cycle */
   HAL_GPIO_WritePin(GPIOA, PA8_D7_OUT_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(PB10_D6_OUT_GPIO_Port, PB10_D6_OUT_Pin, GPIO_PIN_RESET);
 
-  // Start Timer and its channels for the motor driver
+  /* Start Timer and its channels for the motor driver */
   HAL_TIM_Base_Start(&htim3);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
-
-  // Start Timer and its channels for the motor driver
   HAL_TIM_Base_Start(&htim3);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
+
+  /* Configure default robot state */
   Robot_State state = ROBOT_IDLE;
 
-  /* USER CODE END 2 */
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
+  /* Begin Control loop */
   while (1)
   {
-	/* USER CODE BEGIN 3 */
+	/* Capture gyroscope and accelerometer measurements */
 	mpu6050_read_accel(&accel);
 	mpu6050_read_gyro(&gyro);
 
+	/* Update motor output based on the captured pitch angle */
 	PIDController_Update(&controller, set_pitch, accel.pitch_angle);
 
 	/* State Machine Implementation */
+	/* This state machine is to ensure that the robot moves in the correct
+	   direction as it receives new PID outputs. */
 	switch(state)
 	{
 	  case ROBOT_IDLE:
 		state = ROBOT_START;
 		break;
 	  case ROBOT_START:
-		if((accel.pitch_angle) < 0)
-		{
-			state = ROBOT_BACKWARD;
-		}
-		else if ((accel.pitch_angle) > 0)
-		{
-			state = ROBOT_FORWARD;
-		}
-		else
-		{
-			state = ROBOT_START;
-		}
+		// Determine which state to enter next
+		state = robot_start_state(&accel);
 		break;
 	  case ROBOT_FORWARD:
-//		state = robot_forward_state(&accel);
-		// Drive backwards to counter the change
-		if(accel.pitch_angle < 0 && toggle == 1)
-		{
-			// Left Motor
-			HAL_GPIO_TogglePin(GPIOA, PA9_D8_OUT_Pin);
-			HAL_GPIO_TogglePin(PC7_D9_OUT_GPIO_Port, PC7_D9_OUT_Pin);
-
-			// Right Motor
-			HAL_GPIO_TogglePin(GPIOA, PA8_D7_OUT_Pin);
-			HAL_GPIO_TogglePin(PB10_D6_OUT_GPIO_Port, PB10_D6_OUT_Pin);
-			toggle = 0;
-		}
-
-		if(accel.pitch_angle > 0)
-		{
-			state = ROBOT_BACKWARD;
-		}
-		else
-		{
-			state = ROBOT_FORWARD;
-		}
+		// Move the robot backward
+		state = robot_forward_state(&accel, &toggle);
 		break;
 	  case ROBOT_BACKWARD:
-		// Drive forward to counter the change
-		if(accel.pitch_angle > 0 && toggle == 0)
-		{
-			// Left Motor
-			HAL_GPIO_TogglePin(GPIOA, PA9_D8_OUT_Pin);
-			HAL_GPIO_TogglePin(PC7_D9_OUT_GPIO_Port, PC7_D9_OUT_Pin);
-
-			// Right Motor
-			HAL_GPIO_TogglePin(GPIOA, PA8_D7_OUT_Pin);
-			HAL_GPIO_TogglePin(PB10_D6_OUT_GPIO_Port, PB10_D6_OUT_Pin);
-			toggle = 1;
-		}
-
-		if(accel.pitch_angle < 0)
-		{
-			state = ROBOT_FORWARD;
-		}
-		else
-		{
-			state = ROBOT_BACKWARD;
-		}
+		// Move the robot forward
+		state = robot_backward_state(&accel, &toggle);
 		break;
 	  case ROBOT_STOP:
-		__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3, 0);
-		__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_4, 0);
-		state = ROBOT_IDLE;
+		// Stop all motors
+		state = robot_stopped_state(&htim3);
 		break;
 	  case ROBOT_BALANCED:
 		break;
 	  default:
 		break;
 	}
-	__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3, fabs(controller.motor_output*10.0f));
-	__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_4, fabs(controller.motor_output*10.0f));
-	printf("PITCH ANGLE: %.2f MOTOR OUTPUT: %.2f TOGGLE: %d\n\r ", accel.pitch_angle, controller.motor_output, toggle);
-//	HAL_Delay(500);
+
+	/* Change the motor duty cycle based on PID outputs */
+	__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3, controller.motor_output);
+	__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_4, controller.motor_output);
+//	printf("PITCH ANGLE: %.2f MOTOR OUTPUT: %.2f TOGGLE: %d\n\r ", accel.pitch_angle, controller.motor_output, toggle);
+//	printf("Proportional %.2f Derivative %.2f Integral: %.2f\n\r ", controller.proportional, controller.derivative, controller.integral);
+//	HAL_Delay(100);
   }
   /* USER CODE END 3 */
   /* USER CODE END WHILE */
