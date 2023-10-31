@@ -6,12 +6,12 @@ with a PID controller to maintain robot stability. Note, the robot uses a L298N 
 to control the motors.
 
 Design Process
-![Image1](Images\planning.png)
+![Alt text](Images/planning.png)
 
 Modelling
-![Image2](Images\design1.png)
-![Image3](Images\design2.png)
+![Alt text](Images/design1.png)
+![Alt text](Images/design2.png)
 
 Control Logic
-![Image4](Images\state_machine.png)
+![Alt text](Images/state_machine.png)
 
