@@ -9,8 +9,12 @@ to control the motors.
 ![planning](Images/planning.png)
 
 ## Modelling
-<img src="Images/design1.png" width="400" alt="design 1">
-<img src="Images/design2.png" width="400" alt="design 2">
+<div style="display: flex; flex-direction: row;">
+  <img src="Images/design1.png" width="400" alt="design 1">
+  <img src="Images/design2.png" width="400" alt="design 2">
+</div>
 
 ## Control Logic
-<img src="Images/state_machine.png" width="400" alt="state_machine">
+<div style="display: flex; justify-content: center;">
+  <img src="Images/state_machine.png" width="400" alt="state_machine">
+</div>
