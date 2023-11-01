@@ -18,3 +18,7 @@ to control the motors.
 <div style="display: flex; justify-content: center;">
   <img src="Images/state_machine.png" width="400" alt="state_machine">
 </div>
+
+## Next Steps
+- Add bluetooth control to the robot
+- Add a Kalman or a complementary filter that fuses gyroscope and accelerometer readings for better pitch accuracy
