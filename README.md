@@ -19,11 +19,6 @@ a state machine and combined with a PID controller to maintain robot stability.
   <img src="Images/robotV2.jpg" width="27%" hspace="10" alt="robot v2">
 </p>
 
-## Control Logic
-<p align="center" width="100%">
-    <img src="Images/state_machine.png" width="33%" alt="state_machine">
-</p>
-
 ## Next Steps
 - Add Bluetooth control to the robot
 - Add a Kalman or a complementary filter that fuses gyroscope and accelerometer readings for better pitch accuracy
